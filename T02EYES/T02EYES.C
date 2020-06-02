@@ -49,23 +49,42 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
   PAINTSTRUCT ps;
   POINT pt;
   HPEN hPen, hOldPen;
+  static HDC hMemDC;
+  static HBITMAP hBm;
   static INT w, h;
 
   switch (Msg)
   {
   case WM_CREATE:
+    hDC = GetDC(hWnd);
+    hMemDC = CreateCompatibleDC(hDC);
+    ReleaseDC(hWnd, hDC);
+    hBm = NULL;
     SetTimer(hWnd, 30, 102, NULL);
     return 0;
   case WM_SIZE:
     w = LOWORD(lParam);
     h = HIWORD(lParam);
+    if (hBm != NULL)
+      DeleteObject(hBm);
+    hDC = GetDC(hWnd);
+    hBm = CreateCompatibleBitmap(hDC, w, h);
+    ReleaseDC(hWnd, hDC);
+    SelectObject(hMemDC, hBm);
+    GetCursorPos(&pt);
+    ScreenToClient(hWnd, &pt);
+    DrawEye(hDC, rand() % w, rand() % h, 50 + rand() % 47, 18 + rand() % 8, pt.x, pt.y);
+
     return 0;
   case WM_KEYDOWN:
     if (wParam == VK_ESCAPE)
       SendMessage(hWnd, WM_CLOSE, 0, 0);
     return 0;
   case WM_TIMER:
-    /* InvalidateRect(hWnd, NULL, FALSE); */
+    GetCursorPos(&pt);
+    ScreenToClient(hWnd, &pt);
+    DrawEye(hDC, rand() % w, rand() % h, 50 + rand() % 47, 18 + rand() % 8, pt.x, pt.y);
+    InvalidateRect(hWnd, NULL, FALSE);
     return 0;
   case WM_LBUTTONDOWN:
   case WM_MOUSEMOVE:
@@ -76,23 +95,7 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
     return 0;
   case WM_PAINT:
     hDC = BeginPaint(hWnd, &ps);
-
-    SelectObject(hDC, GetStockObject(WHITE_BRUSH));
-    SelectObject(hDC, GetStockObject(NULL_PEN));
-    Rectangle(hDC, 0, 0, w + 1, h + 1);
-
-    SelectObject(hDC, GetStockObject(DC_BRUSH));
-    SelectObject(hDC, GetStockObject(DC_PEN));
-
-	SetDCPenColor(hDC, RGB(0, 0, 0));
-    SetDCBrushColor(hDC, RGB(255, 255, 255));
-    /* Ellipse(hDC, rand() % 1024, rand() % 900, rand() % 1024, rand() % 900); */
-    Ellipse(hDC, 300, 300, 600, 600);
-
-    GetCursorPos(&pt);
-    ScreenToClient(hWnd, &pt);
-    DrawEye(hDC, rand() % w, rand() % h, 50 + rand() % 47, 18 + rand() % 8, pt.x, pt.y);
-    
+    BitBlt(hDC, 0, 0, w, h, hMemDC, SRCCOPY);
     EndPaint(hWnd, &ps);
     return 0;
   case WM_CLOSE:
@@ -102,16 +105,20 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
     return 0;
   case WM_DESTROY:
     PostMessage(hWnd, WM_QUIT, 0, 0);
+    if (hBm != NULL)
+      DeleteObject(hBm);
+    DestroyDC(hMemDC);
     KillTimer(hWnd, 30);
     return 0;
   }
   return DefWindowProc(hWnd, Msg, wParam, lParam);
 } /* End of 'WinFunc' function */
-void DrawEye (hDC, x, y, r1, r2, Mx, My)
+
+LRESULT CALLBACK DrawEye (hDC, x, y, r1, r2, Mx, My) 
 {
   INT Dx = Mx - x, Dy = My - y;
   INT len = sqrt(Dx * Dx + Dy * Dy);
-  INT deltaX = Dx * ((r1 - r2) / len), deltaY = Dy * ((r1 - r2) / len);
+  INT deltaX = Dx * (r1 - r2), deltaY = Dy * (r1 - r2);
   SelectObject(hDC, GetStockObject(DC_BRUSH));
   SelectObject(hDC, GetStockObject(DC_PEN));
 
@@ -119,7 +126,9 @@ void DrawEye (hDC, x, y, r1, r2, Mx, My)
   SetDCBrushColor(hDC, RGB(255, 255, 255));
   Ellipse(hDC, x - r1, y - r1, x + r1, y + r1);
   SetDCPenColor(hDC, RGB(255, 255, 255));
-  SetDCBrushColor(hDC, RGB(0, 0, 0));
-  Ellipse(hDC, deltaX - r2, deltaY - r2, deltaX + r2, deltaY + r2);
-  
-}
+  SetDCBrushColor(hDC, RGB(0, 0, 0)); 
+  if (len <= r1) 
+    Ellipse(hDC, deltaX / len - r2, deltaY / len - r2, deltaX / len + r2, deltaY / len + r2);
+  else
+    Ellipse(hDC, deltaX - r2, deltaY - r2, deltaX + r2, deltaY + r2);
+}  
