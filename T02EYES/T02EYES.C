@@ -83,15 +83,8 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
   case WM_TIMER:
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
-    DrawEye(hDC, rand() % w, rand() % h, 50 + rand() % 47, 18 + rand() % 8, pt.x, pt.y);
+    DrawEye(hDC, rand() % w, rand() % h, 300, 80, pt.x, pt.y);
     InvalidateRect(hWnd, NULL, FALSE);
-    return 0;
-  case WM_LBUTTONDOWN:
-  case WM_MOUSEMOVE:
-    hDC = GetDC(hWnd);
-    if (wParam & MK_LBUTTON)
-      Ellipse(hDC, LOWORD(lParam) - 30, HIWORD(lParam) - 30, LOWORD(lParam) + 30, HIWORD(lParam) + 30);
-    ReleaseDC(hWnd, hDC);
     return 0;
   case WM_PAINT:
     hDC = BeginPaint(hWnd, &ps);
