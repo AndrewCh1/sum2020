@@ -73,7 +73,7 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
     SelectObject(hMemDC, hBm);
     GetCursorPos(&pt);
     ScreenToClient(hWnd, &pt);
-    DrawEye(hDC, rand() % w, rand() % h, 50 + rand() % 47, 18 + rand() % 8, pt.x, pt.y);
+    DrawEye(hDC, rand() % w, rand() % h, 300, 80, pt.x, pt.y);
 
     return 0;
   case WM_KEYDOWN:
@@ -113,8 +113,7 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
   }
   return DefWindowProc(hWnd, Msg, wParam, lParam);
 } /* End of 'WinFunc' function */
-
-LRESULT CALLBACK DrawEye (hDC, x, y, r1, r2, Mx, My) 
+void DrawEye (hDC, x, y, r1, r2, Mx, My) 
 {
   INT Dx = Mx - x, Dy = My - y;
   INT len = sqrt(Dx * Dx + Dy * Dy);
