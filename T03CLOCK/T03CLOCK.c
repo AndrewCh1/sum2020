@@ -1,11 +1,9 @@
 #include <stdlib.h>
 #include <windows.h>
-#include <math.h>
 
 #define WND_CLASS_NAME "My Window Class Name"
 
 LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam );
-VOID DrawEye( HDC hDC, INT x, INT y, INT r1, INT r2, INT Mx, INT My );
 
 INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine, INT CmdShow )
 {
@@ -50,50 +48,61 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
   PAINTSTRUCT ps;
   POINT pt;
   HPEN hPen, hOldPen;
-  static HDC hMemDC;
-  static HBITMAP hBm;
+  static BITMAP bm;
+  static hDC hMemDC, hMemDCFrame, hMemDCClock;
+  static HBITMAP hBm, hBmFrame, hBmClock;
   static INT w, h;
 
   switch (Msg)
   {
   case WM_CREATE:
+    hBmClock = LoadImage(NULL, "clockface.bmp", IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+    GetObject(hBmClock, sizeof(bm), &bm);
+
+    SetTimer(hWnd, 30, 102, NULL);
     hDC = GetDC(hWnd);
-    hMemDC = CreateCompatibleDC(hDC);
+    hMemDCFrame = CreateCompatibleDC(hDC);
+    hMemDCClock = CreateCompatibleDC(hDC);
+    SelectObject(hMemDCClock, hBmClock);
+    BitBlt(hMemDCFrame, 0, 0, bm.bmWidth, bm.bmHeight, hMemDCclock, 0, 0, SRCCOPY);
+
     ReleaseDC(hWnd, hDC);
-    hBm = NULL;
-    SetTimer(hWnd, 30, 12, NULL);
-    return 0;
   case WM_SIZE:
     w = LOWORD(lParam);
     h = HIWORD(lParam);
-    if (hBm != NULL)
-      DeleteObject(hBm);
-    hDC = GetDC(hWnd);
-    hBm = CreateCompatibleBitmap(hDC, w, h);
-    ReleaseDC(hWnd, hDC);
-    SelectObject(hMemDC, hBm);
-    GetCursorPos(&pt);
-    ScreenToClient(hWnd, &pt);
-    DrawEye(hMemDC, 300, 300, 80, 30, pt.x, pt.y);
 
+    if (hBmFrame != NULL)
+      DeleteObject(hBmFrame);
+    hDC = GetDC(hWnd);
+    hBmFrame = CreateCompatibleBitmap(hDC, w, h);
+    ReleaseDC(hWnd, hDC);
+    SelectObject(hMemDCFrame, hBmFrame);
+
+    SendMessage(hWnd, WM_TIMER, 0, 0);
     return 0;
   case WM_KEYDOWN:
     if (wParam == VK_ESCAPE)
       SendMessage(hWnd, WM_CLOSE, 0, 0);
     return 0;
   case WM_TIMER:
-    GetCursorPos(&pt);
-    ScreenToClient(hWnd, &pt);
+    SelectObject(hMemDCFrame, GetStockObject(WHITE_BRUSH));
+    SelectObject(hMemDCFrame, GetStockObject(NULL_PEN));
+    Rectangle(hMemDCF, 0, 0, w + 1, h + 1);
+
+    BitBlt(hMemDCFrame, 0, 0, bm.bmWidth, bm.bmHeight, hMemDCÑlock, 0, 0, SRCCOPY);
+
     InvalidateRect(hWnd, NULL, FALSE);
-    SelectObject(hMemDC, GetStockObject(WHITE_BRUSH));
-    SelectObject(hMemDC, GetStockObject(NULL_PEN));
-    Rectangle(hMemDC, 0, 0, w + 1, h + 1);
-    DrawEye(hMemDC, 300, 300, 80, 30, pt.x, pt.y);
-    DrawEye(hMemDC, 600, 600, 80, 30, pt.x, pt.y);
+    return 0;
+  case WM_LBUTTONDOWN:
+  case WM_MOUSEMOVE:
+    hDC = GetDC(hWnd);
+    if (wParam & MK_LBUTTON)
+      Ellipse(hDC, LOWORD(lParam) - 30, HIWORD(lParam) - 30, LOWORD(lParam) + 30, HIWORD(lParam) + 30);
+    ReleaseDC(hWnd, hDC);
     return 0;
   case WM_PAINT:
     hDC = BeginPaint(hWnd, &ps);
-    BitBlt(hDC, 0, 0, w, h, hMemDC, 0, 0, SRCCOPY);
+
     EndPaint(hWnd, &ps);
     return 0;
   case WM_CLOSE:
@@ -103,30 +112,9 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
     return 0;
   case WM_DESTROY:
     PostMessage(hWnd, WM_QUIT, 0, 0);
-    if (hBm != NULL)
-      DeleteObject(hBm);
-    DeleteDC(hMemDC);
     KillTimer(hWnd, 30);
     return 0;
   }
   return DefWindowProc(hWnd, Msg, wParam, lParam);
+
 } /* End of 'WinFunc' function */
-
-VOID DrawEye( HDC hDC, INT x, INT y, INT r1, INT r2, INT Mx, INT My )
-{
-  INT Dx = Mx - x, Dy = My - y;
-  INT len = sqrt(Dx * Dx + Dy * Dy);
-  INT deltaX = Dx * (r1 - r2) / len, deltaY = Dy * (r1 - r2) / len;
-  SelectObject(hDC, GetStockObject(DC_BRUSH));
-  SelectObject(hDC, GetStockObject(DC_PEN));
-
-  SetDCPenColor(hDC, RGB(0, 0, 0));
-  SetDCBrushColor(hDC, RGB(255, 255, 255));
-  Ellipse(hDC, x - r1, y - r1, x + r1, y + r1);
-  SetDCPenColor(hDC, RGB(255, 255, 255));
-  SetDCBrushColor(hDC, RGB(0, 0, 0));
-  if (len >= r1 - r2)
-    Ellipse(hDC, x + deltaX - r2, y + deltaY - r2, x + deltaX + r2, y + deltaY + r2);
-  else
-    Ellipse(hDC, Mx - r2, My - r2, Mx + r2, My + r2);
- }  
