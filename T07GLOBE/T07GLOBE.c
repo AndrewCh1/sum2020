@@ -72,8 +72,8 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
     hBm = CreateCompatibleBitmap(hDC, w, h);
     ReleaseDC(hWnd, hDC);
     SelectObject(hMemDC, hBm);
-    GlobeSet(w / 2, h / 2, (w < h ? w : h) * 0.8);
-    GlobeDraw( hMemDC );
+    GlobeSet(w / 2, h / 2, (w < h ? w : h) * 0.8 / 2);
+    SendMessage(hWnd, WM_TIMER, 0, 0);
 
     return 0;
   case WM_KEYDOWN:
@@ -85,6 +85,7 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
     SelectObject(hMemDC, GetStockObject(WHITE_BRUSH));
     SelectObject(hMemDC, GetStockObject(NULL_PEN));
     Rectangle(hMemDC, 0, 0, w + 1, h + 1);
+    GlobeDraw(hMemDC);
     return 0;
   case WM_PAINT:
     hDC = BeginPaint(hWnd, &ps);

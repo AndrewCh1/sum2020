@@ -21,7 +21,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -60,7 +60,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				UseLibraryDependencyInputs="true"
+				UseLibraryDependencyInputs="false"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="2"
@@ -71,6 +71,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AssemblyIdentity=""
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -176,6 +177,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\GLOBE.h"
+				>
+			</File>
+			<File
 				RelativePath=".\T07GLOBE.c"
 				>
 			</File>
@@ -185,10 +190,6 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
-			<File
-				RelativePath=".\GLOBE.h"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Файлы ресурсов"
