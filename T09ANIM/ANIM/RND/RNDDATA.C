@@ -4,6 +4,7 @@ HWND AC6_hRndWnd;        /* Work window handle */
 HDC AC6_hRndDC;     /* Work window memory device context  */
 INT AC6_RndFrameW, AC6_RndFrameH, BmFrame; /* Work window size */
 HGLRC AC6_hRndGLRC;
+INT AC6_RndProgId;
 
 DBL
   AC6_RndProjSize,  /* Project plane fit square */

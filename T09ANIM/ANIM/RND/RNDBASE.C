@@ -2,6 +2,7 @@
 
 #pragma comment(lib, "opengl32")
 
+#include <time.h>
 
 #include "rnd.h"
 
@@ -51,10 +52,13 @@ VOID AC6_RndInit( HWND hWnd )
 
   AC6_RndProjSet();
   AC6_RndCamSet(VecSet(3, 3, 3), VecSet(0, 0 ,0), VecSet(0, 1, 0));
+
+  AC6_RndProgId = AC6_RndShdLoad("DEFAULT");
 }
 
 VOID AC6_RndClose( VOID )
 {
+  AC6_RndShdDelete(AC6_RndProgId);
   wglMakeCurrent(NULL, NULL);
   wglDeleteContext(AC6_hRndGLRC);
   ReleaseDC(AC6_hRndWnd, AC6_hRndDC);
@@ -81,13 +85,16 @@ VOID AC6_RndCopyFrame( VOID )
 
 VOID AC6_RndStart(VOID)
 {
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  SelectObject(AC6_hRndDC, GetStockObject(WHITE_BRUSH));
-  SelectObject(AC6_hRndDC, GetStockObject(NULL_PEN));
-  Rectangle(AC6_hRndDC, 0, 0, AC6_RndFrameW + 1, AC6_RndFrameH + 1);
+  INT t = clock();
+  static INT reload_time;
 
-  SelectObject(AC6_hRndDC, GetStockObject(NULL_BRUSH));
-  SelectObject(AC6_hRndDC, GetStockObject(BLACK_PEN));
+  if (t - reload_time > CLOCKS_PER_SEC)
+  {
+    AC6_RndShdDelete(AC6_RndProgId);
+    AC6_RndProgId = AC6_RndShdLoad("DEFAULT");
+    reload_time = t;
+  }
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 VOID AC6_RndEnd( VOID )

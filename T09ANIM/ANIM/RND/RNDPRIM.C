@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "rnd.h"
+#include "../anim.h"
 
 /* The primitive drawing function.
  * ARGUMENTS:
@@ -14,47 +14,104 @@
  * RETURNS:
  *   TRUE or FALSE.
  */
-BOOL AC6_RndPrimCreate( ac6PRIM *Pr, INT NoofV, INT NoofI )
+VOID AC6_RndPrimCreate( ac6PRIM *Pr, ac6VERTEX *V, INT *I, INT NumOfV, INT NumOfI, ac6PRIM_TYPE Type )
 {
-  INT size;
-
   memset(Pr, 0, sizeof(ac6PRIM));
-  size = sizeof(ac6VERTEX) * NoofV + sizeof(INT) * NoofI;
 
-  if ((Pr->V = malloc(size)) == NULL)
-    return FALSE;
-  Pr->I = (INT *)(Pr->V + NoofV);
-  Pr->NumOfV = NoofV;
-  Pr->NumOfI = NoofI;
+  Pr->Type = Type;
+  if (V != NULL)
+  {
+    /*Genrate buffers*/
+    glGenBuffers(1, &Pr->VBuf);
+    glGenVertexArrays(1, &Pr->VA);
+
+    glBindVertexArray(Pr->VA);
+
+    glBindBuffer(GL_ARRAY_BUFFER, Pr->VBuf);
+   
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(ac6VERTEX) * NumOfV, V, GL_STATIC_DRAW);
+   
+
+    glBindBuffer(GL_ARRAY_BUFFER, Pr->VBuf);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, FALSE, sizeof(ac6VERTEX),
+                        (VOID *)0); /* позиция */
+    glVertexAttribPointer(1, 2, GL_FLOAT, FALSE, sizeof(ac6VERTEX),
+                        (VOID *)sizeof(VEC)); /* текстурные координаты */
+    glVertexAttribPointer(2, 3, GL_FLOAT, FALSE, sizeof(ac6VERTEX),
+                        (VOID *)(sizeof(VEC) + sizeof(VEC2))); /* нормаль */
+    glVertexAttribPointer(3, 4, GL_FLOAT, FALSE, sizeof(ac6VERTEX),
+                        (VOID *)(sizeof(VEC) * 2 + sizeof(VEC2))); /* цвет */
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    glEnableVertexAttribArray(3);
+
+    glBindVertexArray(0);
+  }
+  if(I != NULL)
+  {
+    glGenBuffers(1, &Pr->IBuf);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Pr->IBuf);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INT) * NumOfI, I, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  
+    Pr->NumOfElements = NumOfI;
+  }
+  else
+    Pr->NumOfElements = NumOfV;
   Pr->Trans = MatrIdentity();
-  memset(Pr->V, 0, size);
-
-  return TRUE;
 }
 
 BOOL AC6_RndPrimCreateSphere(ac6PRIM *Pr, VEC C, DBL R, INT SplitW, INT SplitH )
 {
-  INT i, j, k = 0;
+  INT i, j, k = 0, noofv, noofi, size;
   DBL phi, theta;
+  ac6VERTEX *V;
+  INT *Ind;
+  VEC L = VecNormalize(VecSet(1, 1, 1));
 
-  if (!AC6_RndPrimCreate(Pr, SplitW * SplitH, 2 * 3 * (SplitW - 1) * (SplitH - 1)))
+  memset(Pr, 0, sizeof(ac6PRIM));
+  noofv = SplitW * SplitH;
+  noofi = 2 * 3 * (SplitW - 1) * (SplitH - 1);
+
+  size = sizeof(ac6VERTEX) * noofv + sizeof(INT) * noofi;
+
+  if ((V = malloc(size)) == NULL)
     return FALSE;
+  Ind = (INT *)(V + noofv);
 
   for (i = 0, theta = 0; i < SplitH; i++, theta += PI / (SplitH - 1))
     for (j = 0, phi = 0; j < SplitW; j++, phi += 2 * PI / (SplitW - 1))
-      Pr->V[k++].P = VecSet(C.X + R * sin(theta) * sin(phi), C.Y + R * cos(theta), C.Z + R * sin(theta) * cos(phi));
+    {
+      FLT
+        x = sin(theta) * sin(phi),
+        y = cos(theta),
+        z = sin(theta) * cos(phi),
+        nl = VecDotVec(VecSet(x, y, z), L);
+ 
+      V[k].P = VecSet(C.X + R * x, C.Y + R * y, C.Z + R * z);
+      if (nl < 0.1)
+        nl = 0.1;
+      V[k].C = Vec4Set(nl, nl, nl, 1);
+      k++;
+    }
   k = 0;
   for (i = 0; i < SplitH - 1; i++)
     for (j = 0; j < SplitW - 1; j++)
     {
-      Pr->I[k++] = i * SplitW + j;
-      Pr->I[k++] = (i + 1) * SplitW + j;
-      Pr->I[k++] = i * SplitW + j + 1;
+      Ind[k++] = i * SplitW + j;
+      Ind[k++] = (i + 1) * SplitW + j;
+      Ind[k++] = i * SplitW + j + 1;
 
-      Pr->I[k++] = (i + 1) * SplitW + j;
-      Pr->I[k++] = i * SplitW + j + 1;
-      Pr->I[k++] = (i + 1) * SplitW + j + 1;
+      Ind[k++] = (i + 1) * SplitW + j;
+      Ind[k++] = i * SplitW + j + 1;
+      Ind[k++] = (i + 1) * SplitW + j + 1;
     }
+
+  AC6_RndPrimCreate(Pr, V, Ind, noofv, noofi, AC6_RND_PRIM_TRIMESH);
 
   return TRUE;
 }
@@ -62,8 +119,19 @@ BOOL AC6_RndPrimCreateSphere(ac6PRIM *Pr, VEC C, DBL R, INT SplitW, INT SplitH )
 
 VOID AC6_RndPrimFree( ac6PRIM *Pr )
 {
-  if (Pr->V != NULL)
-    free(Pr->V);
+  if (Pr->VA != 0)
+  {
+    /* делаем активным массив вершин */
+    glBindVertexArray(Pr->VA);
+    /* "отцепляем" буфер */
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDeleteBuffers(1, &Pr->VBuf);
+    /* делаем неактивным массив вершин */
+    glBindVertexArray(0);
+    glDeleteVertexArrays(1, &Pr->VA);
+  }
+  if (Pr->IBuf != 0)
+    glDeleteBuffers(1, &Pr->IBuf);
   memset(Pr, 0, sizeof(ac6PRIM));
 }
 
@@ -71,7 +139,9 @@ VOID AC6_RndPrimFree( ac6PRIM *Pr )
 BOOL AC6_RndPrimLoad( ac6PRIM *Pr, CHAR *FileName )
 {
   FILE *F;
-  INT nv = 0, nf = 0;
+  INT nv = 0, nf = 0, size;
+  ac6VERTEX *V;
+  INT *Ind;
   static CHAR Buf[1000];
 
   memset(Pr, 0, sizeof(ac6PRIM));
@@ -86,11 +156,15 @@ BOOL AC6_RndPrimLoad( ac6PRIM *Pr, CHAR *FileName )
     else if (Buf[0] == 'f' && Buf[1] == ' ')
       nf++;
 
-  if (!AC6_RndPrimCreate(Pr, nv, nf * 3))
+  size = sizeof(ac6VERTEX) * nv + sizeof(INT) * nf * 3;
+
+  if ((V = malloc(size)) == NULL)
   {
     fclose(F);
     return FALSE;
   }
+  Ind = (INT *)(V + nv);
+  memset(V, 0, size);
 
   /* Load geometry data */
   rewind(F);
@@ -102,7 +176,7 @@ BOOL AC6_RndPrimLoad( ac6PRIM *Pr, CHAR *FileName )
       DBL x, y, z;
 
       sscanf(Buf + 2, "%lf %lf %lf", &x, &y, &z);
-      Pr->V[nv++].P = VecSet(x, y, z);
+      V[nv++].P = VecSet(x, y, z);
     }
     else if (Buf[0] == 'f' && Buf[1] == ' ')
     {
@@ -112,11 +186,12 @@ BOOL AC6_RndPrimLoad( ac6PRIM *Pr, CHAR *FileName )
         sscanf(Buf + 2, "%d//%*d %d//%*d %d//%*d", &n1, &n2, &n3) == 3 ||
         sscanf(Buf + 2, "%d/%*d %d/%*d %d/%*d", &n1, &n2, &n3) == 3 ||
         sscanf(Buf + 2, "%d %d %d", &n1, &n2, &n3) == 3;
-      Pr->I[nf++] = n1 - 1;
-      Pr->I[nf++] = n2 - 1;
-      Pr->I[nf++] = n3 - 1;
+      Ind[nf++] = n1 - 1;
+      Ind[nf++] = n2 - 1;
+      Ind[nf++] = n3 - 1;
     }
 
+  AC6_RndPrimCreate(Pr, V, Ind, nv, nf, AC6_RND_PRIM_TRIMESH);
 
   fclose(F);
   return TRUE;
@@ -125,31 +200,41 @@ BOOL AC6_RndPrimLoad( ac6PRIM *Pr, CHAR *FileName )
 
 VOID AC6_RndPrimDraw( ac6PRIM *Pr, MATR World )
 {
-  INT i;
+  INT loc;
   MATR wvp = MatrMulMatr3(Pr->Trans, World, AC6_RndMatrVP);
-  POINT *pnts;
+  INT gl_prim_type = Pr->Type == AC6_RND_PRIM_LINES ? GL_LINES :
+                     Pr->Type == AC6_RND_PRIM_TRIMESH ? GL_TRIANGLES :
+                     Pr->Type == AC6_RND_PRIM_TRISTRIP ? GL_TRIANGLE_STRIP :
+                     GL_POINTS;
 
-  if ((pnts = malloc(sizeof(POINT) * Pr->NumOfV)) == NULL)
-    return;
 
-  /* Build projection */
-  for (i = 0; i < Pr->NumOfV; i++)
+  glLoadMatrixf(wvp.A[0]);
+
+  glUseProgram(AC6_RndProgId);
+  if ((loc = glGetUniformLocation(AC6_RndProgId, "MatrWVP")) != -1)
+    glUniformMatrix4fv(loc, 1, FALSE, wvp.A[0]);
+  if ((loc = glGetUniformLocation(AC6_RndProgId, "Time")) != -1)
+    glUniform1f(loc, AC6_Anim.Time);
+
+
+  if (Pr ->IBuf != 0)
   {
-    VEC p = VecMulMatr(Pr->V[i].P, wvp);
-
-    pnts[i].x = (LONG)((p.X + 1) * AC6_RndFrameW / 2);
-    pnts[i].y = (LONG)((-p.Y + 1) * AC6_RndFrameH / 2);
+    /* делаем активным массив вершин */
+    glBindVertexArray(Pr->VA);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Pr->IBuf);
+    /* отрисовка */
+    glDrawElements(gl_prim_type, Pr->NumOfElements, GL_UNSIGNED_INT, NULL);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+  }
+  else
+  {
+  /* выключили массив вершин */
+    glBindVertexArray(Pr->VA);
+    glDrawArrays(gl_prim_type, 0, Pr->NumOfElements);
+    glBindVertexArray(0);
   }
 
-  /* Draw triangles */
-  for (i = 0; i < Pr->NumOfI; i += 3)
-  {
-    MoveToEx(AC6_hRndDC, pnts[Pr->I[i]].x, pnts[Pr->I[i]].y, NULL);
-    LineTo(AC6_hRndDC, pnts[Pr->I[i + 1]].x, pnts[Pr->I[i + 1]].y);
-    LineTo(AC6_hRndDC, pnts[Pr->I[i + 2]].x, pnts[Pr->I[i + 2]].y);
-    LineTo(AC6_hRndDC, pnts[Pr->I[i]].x, pnts[Pr->I[i]].y);
-  }
-  free(pnts);
 }/* End of drawing function */
 
 

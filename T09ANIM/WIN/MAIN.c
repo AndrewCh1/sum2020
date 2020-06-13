@@ -54,6 +54,8 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
     NULL, NULL, hInstance, NULL);
   ShowWindow(hWnd, CmdShow);
   AC6_AnimAddUnit(AC6_UnitCreateBall());
+  //AC6_AnimAddUnit(AC6_UnitCreateCow());
+  AC6_AnimAddUnit(AC6_UnitCreateControl());
 
   /* MessageLoop */
   while(TRUE)
@@ -64,7 +66,10 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
       DispatchMessage(&msg);
     }
     else 
-      SendMessage(hWnd, WM_TIMER, 30, 0);
+    {
+      AC6_AnimRender();
+      AC6_RndCopyFrame();
+    }
 
   return 30;
 } /* End of 'WinMain' function */
@@ -86,7 +91,8 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
     return 0;
   case WM_SIZE:
     AC6_AnimResize(LOWORD(lParam), HIWORD(lParam));
-    SendMessage(hWnd, WM_TIMER, 47, 0);
+    AC6_AnimRender();
+    AC6_RndCopyFrame();
     return 0;
   case WM_KEYDOWN:
     if (wParam == VK_ESCAPE)
@@ -99,10 +105,7 @@ LRESULT CALLBACK WinFunc( HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam )
     return 1;
   case WM_TIMER:
     AC6_AnimRender();
-
-    hDC = GetDC(hWnd);
     AC6_RndCopyFrame();
-    ReleaseDC(hWnd, hDC); 
     /* InvalidateRect(hWnd, NULL, FALSE); */
     return 0;
   case WM_PAINT:

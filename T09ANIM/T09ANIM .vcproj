@@ -175,7 +175,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ANIM\UNITS.H"
+				RelativePath=".\UNITS.H"
 				>
 			</File>
 			<Filter
@@ -240,6 +240,10 @@
 						RelativePath=".\ANIM\RND\RNDPRIM.C"
 						>
 					</File>
+					<File
+						RelativePath=".\ANIM\RND\RNDSHD.C"
+						>
+					</File>
 				</Filter>
 			</Filter>
 			<Filter
@@ -247,6 +251,14 @@
 				>
 				<File
 					RelativePath=".\UNITS\U_BALL.C"
+					>
+				</File>
+				<File
+					RelativePath=".\UNITS\U_CNTRL.c"
+					>
+				</File>
+				<File
+					RelativePath=".\UNITS\U_COW.C"
 					>
 				</File>
 			</Filter>

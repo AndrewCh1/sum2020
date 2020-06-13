@@ -1,11 +1,10 @@
-
 #include "../units.h"
 
-typedef struct tagac6UNIT_BALL
+typedef struct tagac6UNIT_COW
 {
   AC6_UNIT_BASE_FIELDS;
-  ac6PRIM Ball;
-} ac6UNIT_BALL;
+  ac6PRIM Cow;
+} ac6UNIT_COW;
 
 /* Unit initialization function.
  * ARGUMENTS:
@@ -15,9 +14,9 @@ typedef struct tagac6UNIT_BALL
  *       ac6ANIM *Ani;
  * RETURNS: None.
  */
-static VOID AC6_UnitInit( ac6UNIT_BALL *Uni, ac6ANIM *Ani )
+static VOID AC6_UnitInit( ac6UNIT_COW *Uni, ac6ANIM *Ani )
 {
-  AC6_RndPrimCreateSphere(&Uni->Ball, VecSet(0, 0, 0), 1, 100, 50);
+  AC6_RndPrimLoad( &Uni->Cow, "cow.obj" );
 } 
 /* End of 'AC6_UnitInit' function */
 
@@ -29,9 +28,9 @@ static VOID AC6_UnitInit( ac6UNIT_BALL *Uni, ac6ANIM *Ani )
  *       ac6ANIM *Ani;
  * RETURNS: None.
  */
-static VOID AC6_UnitClose( ac6UNIT_BALL *Uni, ac6ANIM *Ani )
+static VOID AC6_UnitClose( ac6UNIT_COW *Uni, ac6ANIM *Ani )
 {
-  AC6_RndPrimFree(&Uni->Ball);
+  AC6_RndPrimFree(&Uni->Cow);
 } 
 /* End of 'AC6_UnitClose' function */
 
@@ -43,7 +42,7 @@ static VOID AC6_UnitClose( ac6UNIT_BALL *Uni, ac6ANIM *Ani )
  *       vac6ANIM *Ani;
  * RETURNS: None.
  */
-static VOID AC6_UnitResponse( ac6UNIT_BALL *Uni, ac6ANIM *Ani )
+static VOID AC6_UnitResponse( ac6UNIT_COW *Uni, ac6ANIM *Ani )
 {
 } 
 /* End of 'AC6_UnitResponse' function */
@@ -56,17 +55,17 @@ static VOID AC6_UnitResponse( ac6UNIT_BALL *Uni, ac6ANIM *Ani )
  *       ac6ANIM *Ani;
  * RETURNS: None.
  */
-static VOID AC6_UnitRender( ac6UNIT_BALL *Uni, ac6ANIM *Ani )
+static VOID AC6_UnitRender( ac6UNIT_COW *Uni, ac6ANIM *Ani )
 {
-  AC6_RndPrimDraw(&Uni->Ball, MatrIdentity( VecSet(2, 2, 3)));
+  AC6_RndPrimDraw(&Uni->Cow, MatrRotate(Ani->Time * 30, VecSet(1, 2, 3)));
 }
 /* End of 'VG4_UnitRender' function */
 
-ac6UNIT * AC6_UnitCreateBall( VOID )
+ac6UNIT * AC6_UnitCreateCow( VOID )
 {
   ac6UNIT *Uni;
 
-  if ((Uni = AC6_AnimUnitCreate(sizeof(ac6UNIT_BALL))) == NULL)
+  if ((Uni = AC6_AnimUnitCreate(sizeof(ac6UNIT_COW))) == NULL)
     return NULL;
 
   /* Setup unit methods */
@@ -76,4 +75,4 @@ ac6UNIT * AC6_UnitCreateBall( VOID )
   Uni->Render = (VOID *)AC6_UnitRender;
 
   return Uni;
-} /* End of 'AC6_UnitCreateCow' function */
+} /* End of 'VG4_UnitCreateBall' function */
