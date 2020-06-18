@@ -8,7 +8,13 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #include "rnd.h"
+#define AC6_STR_MAX 300
+
+ac6SHADER AC6_RndShaders[AC6_MAX_SHADERS];
+INT AC6_RndShadersSize;
+
 
 /* Load text from file function.
  * ARGUMENTS:
@@ -47,6 +53,53 @@ static CHAR * AC6_RndShdLoadTextFromFile( CHAR *FileName )
   return txt;
 } /* End of 'AC6_RndShdLoadTextFromFile' function */
 
+/* Shader init function.
+ * ARGUMENTS:None. 
+ * RETURNS: None.
+ */
+VOID AC6_RndShdInit( VOID )
+{
+  AC6_RndShadersSize = 0;
+  AC6_RndShdAdd("DEFAULT");
+} /* End of 'AC6_RndShdInit' function */
+
+/* Closing shader function.
+ * ARGUMENTS: None.
+ * RETURNS: None.
+ */
+VOID AC6_RndShdClose( VOID )
+{
+  INT i;
+  for(i = 0; i < AC6_RndShadersSize; i++)
+    AC6_RndShdDelete(AC6_RndShaders[i].ProgId);
+  AC6_RndShadersSize = 0;
+}  /* End of 'AC6_RndShdClose' function */
+
+/* Adding shader function.
+ * ARGUMENTS:
+ *   - message file prefix, shader name and text:
+ *       CHAR *Prefix, *PartName, *Text;
+ * RETURNS: None.
+ */
+INT AC6_RndShdAdd( CHAR *ShaderFileNamePrefix )
+{
+  if (AC6_RndShadersSize >= AC6_MAX_SHADERS)
+    return 0;
+  strncpy(AC6_RndShaders[AC6_RndShadersSize].Name, ShaderFileNamePrefix, AC6_STR_MAX - 1);
+  AC6_RndShaders[AC6_RndShadersSize].ProgId = AC6_RndShdLoad(ShaderFileNamePrefix);
+  return AC6_RndShadersSize++;
+} /* End of 'AC6_RndShdAdd' function */
+
+VOID AC6_RndShdUpdate( VOID )
+{
+  INT i;
+
+  for(i = 0; i < AC6_RndShadersSize; i++)
+  {
+    AC6_RndShdDelete(AC6_RndShaders[i].ProgId);
+    AC6_RndShaders[i].ProgId = AC6_RndShdLoad(AC6_RndShaders[i].Name);
+  }
+}
 
 /* Store log to file function.
  * ARGUMENTS:
@@ -58,7 +111,7 @@ static VOID AC6_RndShdLog( CHAR *Prefix, CHAR *PartName, CHAR *Text )
 {
   FILE *F;
 
-  if ((F = fopen("BIN/SHADERS/VG4{30}SHD.LOG", "a")) == NULL)
+  if ((F = fopen("BIN/SHADERS/AC6{30}SHD.LOG", "a")) == NULL)
     return;
   fprintf(F, "%s/%s.GLSL\n%s\n", Prefix, PartName, Text);
   fclose(F);
@@ -71,7 +124,7 @@ static VOID AC6_RndShdLog( CHAR *Prefix, CHAR *PartName, CHAR *Text )
  * RETURNS:
  *   (INT) load shader program Id.
  */
-INT AC6_RndShdLoad( CHAR *ShaderFileNamePrefix )
+static INT AC6_RndShdLoad( CHAR *ShaderFileNamePrefix )
 {
   struct
   {
@@ -189,5 +242,7 @@ VOID AC6_RndShdDelete( INT ProgId )
   }
   glDeleteProgram(ProgId);
 } /* End of 'AC6_RndShdDelete' function */
+
+ 
 
 /* END OF 'RNDSHD.C' FILE */

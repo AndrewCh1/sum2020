@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../anim.h"
+#include "rnd.h"
 
 /* The primitive drawing function.
  * ARGUMENTS:
@@ -67,7 +67,7 @@ VOID AC6_RndPrimCreate( ac6PRIM *Pr, ac6VERTEX *V, INT *I, INT NumOfV, INT NumOf
 
 BOOL AC6_RndPrimCreateSphere(ac6PRIM *Pr, VEC C, DBL R, INT SplitW, INT SplitH )
 {
-  INT i, j, k = 0, noofv, noofi, size;
+  INT i, j, k = 0, noofv, size;
   DBL phi, theta;
   ac6VERTEX *V;
   INT *Ind;
@@ -75,9 +75,8 @@ BOOL AC6_RndPrimCreateSphere(ac6PRIM *Pr, VEC C, DBL R, INT SplitW, INT SplitH )
 
   memset(Pr, 0, sizeof(ac6PRIM));
   noofv = SplitW * SplitH;
-  noofi = 2 * 3 * (SplitW - 1) * (SplitH - 1);
 
-  size = sizeof(ac6VERTEX) * noofv + sizeof(INT) * noofi;
+  size = sizeof(ac6VERTEX) * noofv;
 
   if ((V = malloc(size)) == NULL)
     return FALSE;
@@ -99,19 +98,8 @@ BOOL AC6_RndPrimCreateSphere(ac6PRIM *Pr, VEC C, DBL R, INT SplitW, INT SplitH )
       k++;
     }
   k = 0;
-  for (i = 0; i < SplitH - 1; i++)
-    for (j = 0; j < SplitW - 1; j++)
-    {
-      Ind[k++] = i * SplitW + j;
-      Ind[k++] = (i + 1) * SplitW + j;
-      Ind[k++] = i * SplitW + j + 1;
-
-      Ind[k++] = (i + 1) * SplitW + j;
-      Ind[k++] = i * SplitW + j + 1;
-      Ind[k++] = (i + 1) * SplitW + j + 1;
-    }
-
-  AC6_RndPrimCreate(Pr, V, Ind, noofv, noofi, AC6_RND_PRIM_TRIMESH);
+  
+  AC6_RndPrimCreateFromGrid(Pr, V, SplitW, SplitH, FALSE );
 
   return TRUE;
 }
@@ -134,6 +122,66 @@ VOID AC6_RndPrimFree( ac6PRIM *Pr )
     glDeleteBuffers(1, &Pr->IBuf);
   memset(Pr, 0, sizeof(ac6PRIM));
 }
+
+/*Primitive creating from grid*/
+BOOL AC6_RndPrimCreateFromGrid( ac6PRIM *Pr, ac6VERTEX *V, INT W, INT H, BOOL IsNormalNeed )
+{
+  INT i, j, k;
+  INT *Ind;
+
+  memset(Pr, 0, sizeof(ac6PRIM));
+  if ((Ind = malloc(((2 * W + 1) * (H - 1) - 1) * sizeof(INT))) == NULL)
+    return FALSE;
+
+  for (i = 0, k = 0; i < H - 1; i++)
+  {
+    for (j = 0; j < W; j++)
+    {
+      Ind[k++] = (i + 1) * W + j;
+      Ind[k++] = i * W + j;
+    }
+    if (i != H - 2)
+      Ind[k++] = -1;
+  }
+
+  if(IsNormalNeed)
+  {
+   for (i = 0; i < W * H; i++)
+     V[i].N = VecSet(0, 0, 0);
+
+   for (i = 0; i < H - 1; i++)
+    for (j = 0; j < W - 1; j++)
+    {
+      ac6VERTEX
+        *P00 = V + i * W + j,
+        *P01 = V + i * W + j + 1,
+        *P10 = V + (i + 1) * W + j,
+        *P11 = V + (i + 1) * W + j + 1;
+      VEC N;
+
+      N = VecNormalize(VecCrossVec(VecSubVec(P00->P, P10->P),
+                                   VecSubVec(P11->P, P10->P)));
+      P00->N = VecAddVec(P00->N, N);
+      P10->N = VecAddVec(P10->N, N);
+      P11->N = VecAddVec(P11->N, N);
+
+      N = VecNormalize(VecCrossVec(VecSubVec(P11->P, P01->P),
+                                   VecSubVec(P00->P, P01->P)));
+      P00->N = VecAddVec(P00->N, N);
+      P01->N = VecAddVec(P01->N, N);
+      P11->N = VecAddVec(P11->N, N);
+    }
+    for (i = 0; i < W * H; i++)
+      V[i].N = VecNormalize(V[i].N);
+ 
+  }
+
+  AC6_RndPrimCreate(Pr, V, Ind, W * H, 
+    (2 * W + 1) * (H - 1) - 1,  AC6_RND_PRIM_TRISTRIP);
+  free(Ind);
+  return TRUE;
+} /* End of AC6_RndPrimCreateFromGrid function */
+
 
 /* Primitive loading*/
 BOOL AC6_RndPrimLoad( ac6PRIM *Pr, CHAR *FileName )
@@ -195,13 +243,17 @@ BOOL AC6_RndPrimLoad( ac6PRIM *Pr, CHAR *FileName )
 
   fclose(F);
   return TRUE;
-} /* End of 'VG4_RndPrimCreateCone' function */
+} /* End of 'AC6_RndPrimCreateCone' function */
 
 
 VOID AC6_RndPrimDraw( ac6PRIM *Pr, MATR World )
 {
-  INT loc;
-  MATR wvp = MatrMulMatr3(Pr->Trans, World, AC6_RndMatrVP);
+  INT loc, ProgId;
+  MATR
+    w = MatrMulMatr2(Pr->Trans, World),
+    winv = MatrTranspose(MatrInverse(w)),
+    wvp = MatrMulMatr2(w, AC6_RndMatrVP);
+
   INT gl_prim_type = Pr->Type == AC6_RND_PRIM_LINES ? GL_LINES :
                      Pr->Type == AC6_RND_PRIM_TRIMESH ? GL_TRIANGLES :
                      Pr->Type == AC6_RND_PRIM_TRISTRIP ? GL_TRIANGLE_STRIP :
@@ -210,12 +262,29 @@ VOID AC6_RndPrimDraw( ac6PRIM *Pr, MATR World )
 
   glLoadMatrixf(wvp.A[0]);
 
-  glUseProgram(AC6_RndProgId);
-  if ((loc = glGetUniformLocation(AC6_RndProgId, "MatrWVP")) != -1)
-    glUniformMatrix4fv(loc, 1, FALSE, wvp.A[0]);
-  if ((loc = glGetUniformLocation(AC6_RndProgId, "Time")) != -1)
-    glUniform1f(loc, AC6_Anim.Time);
+  ProgId = AC6_RndMtlApply(Pr->MtlNo);
 
+  glUseProgram(ProgId);
+  if ((loc = glGetUniformLocation(ProgId, "MatrWVP")) != -1)
+    glUniformMatrix4fv(loc, 1, FALSE, wvp.A[0]);
+  if ((loc = glGetUniformLocation(ProgId, "Time")) != -1)
+    glUniform1f(loc, AC6_Anim.Time);
+  if ((loc = glGetUniformLocation(ProgId, "MatrWVP")) != -1)
+    glUniformMatrix4fv(loc, 1, FALSE, wvp.A[0]);
+  if ((loc = glGetUniformLocation(ProgId, "MatrW")) != -1)
+    glUniformMatrix4fv(loc, 1, FALSE, w.A[0]);
+  if ((loc = glGetUniformLocation(ProgId, "MatrWInv")) != -1)
+    glUniformMatrix4fv(loc, 1, FALSE, winv.A[0]);
+
+  /*Camera*/
+  if ((loc = glGetUniformLocation(ProgId, "CamLoc")) != -1)
+    glUniform3fv(loc, 1, &AC6_RndCamLoc.X);
+  if ((loc = glGetUniformLocation(ProgId, "CamRight")) != -1)
+    glUniform3fv(loc, 1, &AC6_RndCamLoc.X);
+  if ((loc = glGetUniformLocation(ProgId, "CamUp")) != -1)
+    glUniform3fv(loc, 1, &AC6_RndCamLoc.X);
+  if ((loc = glGetUniformLocation(ProgId, "CamDir")) != -1)
+    glUniform3fv(loc, 1, &AC6_RndCamLoc.X);
 
   if (Pr ->IBuf != 0)
   {

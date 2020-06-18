@@ -12,6 +12,7 @@ VOID AC6_AnimInit( HWND hWnd )
 
   AC6_AnimInputInit();
   AC6_TimerInit();
+  AC6_RndResInit();
 
 }
 
@@ -27,6 +28,7 @@ VOID AC6_AnimClose( VOID )
   }
   AC6_Anim.NumOfUnits = 0;
   AC6_RndClose();
+  AC6_RndResClose();
 
   memset(&AC6_Anim, 0, sizeof(ac6ANIM));
 }

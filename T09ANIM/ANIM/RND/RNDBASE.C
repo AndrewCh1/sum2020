@@ -5,7 +5,7 @@
 #include <time.h>
 
 #include "rnd.h"
-
+#include "resourses/rndres.h"
 
 /**/
 VOID AC6_RndInit( HWND hWnd )
@@ -45,20 +45,23 @@ VOID AC6_RndInit( HWND hWnd )
   glClearColor(0.30, 0.50, 0.8, 1);
   glEnable(GL_DEPTH_TEST);
 
+  glEnable(GL_PRIMITIVE_RESTART);
+  glPrimitiveRestartIndex(-1);
+
   AC6_RndFrameH = AC6_RndFrameW = 47;
 
   AC6_RndProjSize = AC6_RndProjDist = 0.1;  /* Project plane fit square */
-  AC6_RndProjFarClip = 300;
+  AC6_RndProjFarClip = 3000;
 
   AC6_RndProjSet();
   AC6_RndCamSet(VecSet(3, 3, 3), VecSet(0, 0 ,0), VecSet(0, 1, 0));
 
-  AC6_RndProgId = AC6_RndShdLoad("DEFAULT");
+  /// AC6_RndProgId = AC6_RndShdLoad("DEFAULT");
 }
 
 VOID AC6_RndClose( VOID )
 {
-  AC6_RndShdDelete(AC6_RndProgId);
+  /// AC6_RndShdDelete(AC6_RndProgId);
   wglMakeCurrent(NULL, NULL);
   wglDeleteContext(AC6_hRndGLRC);
   ReleaseDC(AC6_hRndWnd, AC6_hRndDC);
@@ -85,15 +88,16 @@ VOID AC6_RndCopyFrame( VOID )
 
 VOID AC6_RndStart(VOID)
 {
+#ifndef NDEBUG
   INT t = clock();
   static INT reload_time;
 
   if (t - reload_time > CLOCKS_PER_SEC)
   {
-    AC6_RndShdDelete(AC6_RndProgId);
-    AC6_RndProgId = AC6_RndShdLoad("DEFAULT");
+    AC6_RndShdUpdate();
     reload_time = t;
   }
+#endif 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -125,6 +129,11 @@ VOID AC6_RndCamSet( VEC Loc, VEC At, VEC Up )
 {
   AC6_RndMatrView = MatrView(Loc, At, Up);
   AC6_RndMatrVP = MatrMulMatr(AC6_RndMatrView, AC6_RndMatrProj);
+
+  AC6_RndCamLoc = Loc;
+  AC6_RndCamRight = VecSet(AC6_RndMatrView.A[0][0], AC6_RndMatrView.A[1][0], AC6_RndMatrView.A[2][0]);
+  AC6_RndCamUp = VecSet(AC6_RndMatrView.A[0][1], AC6_RndMatrView.A[1][1], AC6_RndMatrView.A[2][1]);
+  AC6_RndCamDir = VecSet(AC6_RndMatrView.A[0][2], AC6_RndMatrView.A[1][2], AC6_RndMatrView.A[2][2]);
 }
 
 

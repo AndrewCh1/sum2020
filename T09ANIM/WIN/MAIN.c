@@ -55,6 +55,7 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
   ShowWindow(hWnd, CmdShow);
   AC6_AnimAddUnit(AC6_UnitCreateBall());
   //AC6_AnimAddUnit(AC6_UnitCreateCow());
+  AC6_AnimAddUnit(AC6_UnitCreateImg());
   AC6_AnimAddUnit(AC6_UnitCreateControl());
 
   /* MessageLoop */

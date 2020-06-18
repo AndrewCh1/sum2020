@@ -14,3 +14,4 @@ MATR
   AC6_RndMatrView, /* View coordinate system matrix */
   AC6_RndMatrProj, /* Projection coordinate system matrix */
   AC6_RndMatrVP;   /* Stored (View * Proj) matrix */
+VEC AC6_RndCamLoc;

@@ -241,9 +241,41 @@
 						>
 					</File>
 					<File
-						RelativePath=".\ANIM\RND\RNDSHD.C"
+						RelativePath=".\ANIM\RND\RNDPRIMS.c"
 						>
 					</File>
+					<Filter
+						Name="Resourses"
+						>
+						<File
+							RelativePath=".\ANIM\RND\Resourses\IMAGE.c"
+							>
+						</File>
+						<File
+							RelativePath=".\ANIM\RND\Resourses\IMAGE.h"
+							>
+						</File>
+						<File
+							RelativePath=".\ANIM\RND\Resourses\RNDMTL.c"
+							>
+						</File>
+						<File
+							RelativePath=".\ANIM\RND\Resourses\RNDRES.c"
+							>
+						</File>
+						<File
+							RelativePath=".\ANIM\RND\Resourses\RNDRES.h"
+							>
+						</File>
+						<File
+							RelativePath=".\ANIM\RND\RNDSHD.C"
+							>
+						</File>
+						<File
+							RelativePath=".\ANIM\RND\Resourses\RNDTEX.c"
+							>
+						</File>
+					</Filter>
 				</Filter>
 			</Filter>
 			<Filter
@@ -259,6 +291,10 @@
 				</File>
 				<File
 					RelativePath=".\UNITS\U_COW.C"
+					>
+				</File>
+				<File
+					RelativePath=".\UNITS\U_IMAGE.c"
 					>
 				</File>
 			</Filter>

@@ -27,6 +27,7 @@ VOID AC6_TimerResponse( VOID )
 {
   LARGE_INTEGER t;
 
+
   QueryPerformanceCounter(&t);
   /* Global time */
   AC6_Anim.GlobalTime = (DBL)(t.QuadPart - StartTime) / TimePerSec;
@@ -52,4 +53,4 @@ VOID AC6_TimerResponse( VOID )
     FrameCounter = 0;
   }
   OldTime = t.QuadPart;
-}
+ }

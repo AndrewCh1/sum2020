@@ -14,6 +14,7 @@
 #define Degree2Radian(a) D2R(a)
 
 /*Useful macros*/
+#define MatrMulMatr2(A, B) MatrMulMatr(A, B)
 #define MatrMulMatr3(A, B, C) MatrMulMatr(MatrMulMatr(A, B), C)
 
 
@@ -50,10 +51,13 @@ __inline VEC VecSet( FLT X, FLT Y, FLT Z )
   return v;
 } /* End of 'VecSet' function */
 
-__inline VEC VecSet1( FLT X)
+__inline VEC VecSet1( FLT X )
 {
   VEC v;
   v.X = X;
+  v.Y = X;
+  v.Z = X;
+  return v;
 }
 
 __inline VEC4 Vec4Set( FLT A, FLT B, FLT C, FLT D )
@@ -70,6 +74,9 @@ __inline VEC4 Vec4Set1( FLT A )
 {
   VEC4 v;
   v.X = A;
+  v.Y = A;
+  v.Z = A;
+  v.W = A;
   return v;
 }
 
@@ -86,6 +93,7 @@ __inline VEC2 Vec2Set1( FLT A )
 {
   VEC2 v;
   v.X = A;
+  v.Y = A;
   return v;
 }
 
@@ -210,7 +218,7 @@ __inline VEC VecMulMatr4x4( VEC V, MATR M )
                 (V.X * M.A[0][2] + V.Y * M.A[1][2] + V.Z * M.A[2][2] + M.A[3][2]) / w);
 }
 
-/*MAXTRIX REALISATION*/
+/*MATRIX REALISATION*/
 
 static MATR UNIT_MATRIX =
 {                  \
@@ -257,10 +265,10 @@ __inline MATR MatrRotateX( DBL AngleInDegree )
     c = cos(a),
     s = sin(a);
   MATR m = UNIT_MATRIX;
-  m.A[0][0] = c;
-  m.A[0][1] = s;
-  m.A[1][0] = -s;
   m.A[1][1] = c;
+  m.A[1][2] = s;
+  m.A[2][1] = -s;
+  m.A[2][2] = c;
   return m;
 }
 
@@ -438,6 +446,30 @@ __inline MATR MatrInverse( MATR M )
   return r;
 }
 
+__inline MATR MatrTranspose(MATR M)
+{
+MATR M1;
+
+M1.A[0][0] = M.A[0][0];
+M1.A[0][1] = M.A[1][0];
+M1.A[0][2] = M.A[2][0];
+M1.A[0][3] = M.A[3][0];
+M1.A[1][0] = M.A[0][1];
+M1.A[1][1] = M.A[1][1];
+M1.A[1][2] = M.A[2][1];
+M1.A[1][3] = M.A[3][1];
+M1.A[2][0] = M.A[0][2];
+M1.A[2][1] = M.A[1][2];
+M1.A[2][2] = M.A[2][2];
+M1.A[2][3] = M.A[3][2];
+M1.A[3][0] = M.A[0][3];
+M1.A[3][1] = M.A[1][3];
+M1.A[3][2] = M.A[2][3];
+M1.A[3][3] = M.A[3][3];
+
+return M1;
+}
+
 /* Matrix look-at viewer setup function.
  * ARGUMENTS:
  *   - viewer position, look-at point, approximate up direction:
@@ -445,8 +477,6 @@ __inline MATR MatrInverse( MATR M )
  * RETURNS:
  *   (MATR) result matrix.
  */
-
-
 __inline MATR MatrView( VEC Loc, VEC At, VEC Up1 )
 {
   VEC 
@@ -474,7 +504,7 @@ __inline MATR MatrOrtho(FLT l, FLT r, FLT b, FLT t, FLT n, FLT f)
     {2 / (r - l), 0, 0, 0},
     {0, 2 / (t - b), 0, 0},
     {0, 0, -(2 / (f - n)), 0},
-    {0, 0, -(( n + f) / (f - n)), 1}
+    {-(r + l) / (r - l), -(t + b) / (t - b), -(( n + f) / (f - n)), 1}
    }
   };
   return m;
