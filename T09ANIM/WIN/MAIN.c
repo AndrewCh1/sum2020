@@ -53,10 +53,13 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, CHAR *CmdLine,
     0, 0, 800, 800,
     NULL, NULL, hInstance, NULL);
   ShowWindow(hWnd, CmdShow);
-  AC6_AnimAddUnit(AC6_UnitCreateBall());
-  //AC6_AnimAddUnit(AC6_UnitCreateCow());
+
+  AC6_AnimAddUnit(AC6_UnitCreateSpaceship());
   AC6_AnimAddUnit(AC6_UnitCreateImg());
+  //AC6_AnimAddUnit(AC6_UnitCreateShadow());
   AC6_AnimAddUnit(AC6_UnitCreateControl());
+  AC6_AnimAddUnit(AC6_UnitCreateBall());
+
 
   /* MessageLoop */
   while(TRUE)

@@ -8,6 +8,8 @@
 #include "glew.h"
 #include <gl/gl.h>
 #include "../anim.h"
+#include "Resourses/image.h"
+
 
 
 #include "../../def.h"
@@ -29,6 +31,7 @@ MATR
   AC6_RndMatrVP;   /* Stored (View * Proj) matrix */
 
 VEC AC6_RndCamLoc;
+VEC AC6_RndCamAt;
 VEC AC6_RndCamDir;
 VEC AC6_RndCamUp;
 VEC AC6_RndCamRight;
@@ -91,6 +94,7 @@ typedef struct tagac6PRIMS
   INT NumOfPrims; /* Number of primitives in array */  
   ac6PRIM *Prims; /* Array of primitives */
   MATR Trans;     /* Common transformation matrix */
+  INT MtlNo;
 } ac6PRIMS;
 
 /*typedef struct tagac6IMAGE
@@ -136,5 +140,25 @@ INT AC6_RndShdLoad( CHAR *ShaderFileNamePrefix );
 VOID AC6_RndShdDelete( INT ProgId );
 
 
+/* Light */
+
+/* Shadow map texture identifier */ 
+extern INT AC6_RndShadowTexId;
+
+/* Shadow map light source matrix */ 
+extern MATR AC6_RndShadowMatr;
+
+/* Flag for shadow drawing rendering pass */ 
+extern BOOL AC6_RndShadowPassFlag;
+
+/* Light source direction */ 
+extern VEC AC6_RndLightDir;
+
+/* Light source color */ 
+extern VEC AC6_RndLightColor;
+
+VOID AC6_RndLightInit( VOID );
+VOID AC6_RndLightClose( VOID );
+VOID AC6_RndLightShadow( VOID );
 #endif
 /* End of 'RND.h' file */

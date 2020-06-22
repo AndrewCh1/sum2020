@@ -60,7 +60,7 @@ INT AC6_RndMtlApply( INT MtlNo )
 {
   INT prg, loc, i;
   ac6MATERIAL *mtl;
- 
+  
   /* Set material pointer 
   if (MtlNo < 0 || MtlNo >= AC6_RndMaterialsSize)
     MtlNo = 0;
@@ -83,21 +83,37 @@ INT AC6_RndMtlApply( INT MtlNo )
     glUniform3fv(loc, 1, &mtl->Ks.X);
   if ((loc = glGetUniformLocation(prg, "Ph")) != -1)
     glUniform1f(loc, mtl->Ph);
+  if ((loc = glGetUniformLocation(prg, "Trans")) != -1)
+    glUniform1f(loc, mtl->Trans);
+
+  if ((loc = glGetUniformLocation(prg, "LightDir")) != -1)
+    glUniform3fv(loc, 1, &AC6_RndLightDir.X);
+  if ((loc = glGetUniformLocation(prg, "LightColor")) != -1)
+    glUniform3fv(loc, 1, &AC6_RndLightColor.X);
+  if ((loc = glGetUniformLocation(prg, "ShadowMatr")) != -1)
+    glUniformMatrix4fv(loc, 1, FALSE, AC6_RndShadowMatr.A[0]);
 
   /* Set textures */
   for (i = 0; i < 8; i++)
   {
-    CHAR tname[] = "IsMaterial0";
+    CHAR tname[] = "IsTexture0";
 
     tname[9] = '0' + i;
     if (mtl->Tex[i] != -1)
     {
+      if ((loc = glGetUniformLocation(prg, "Texture0")) != -1)
+        glUniform1f(loc, i);
       glActiveTexture(GL_TEXTURE0 + i);
       glBindTexture(GL_TEXTURE_2D, AC6_RndTextures[mtl->Tex[i]].TexId);
     }
     if ((loc = glGetUniformLocation(prg, tname)) != -1)
       glUniform1i(loc, mtl->Tex[i] != -1);
   }
+  if ((loc = glGetUniformLocation(prg, "ShadowMapTexture")) != -1)
+    glUniform1f(loc, 8);
+  glActiveTexture(GL_TEXTURE0 + 8);
+  glBindTexture(GL_TEXTURE_2D, AC6_RndShadowTexId);
+
   return prg;
 } /* End of 'AC6_RndMtlApply' function */
 

@@ -20,7 +20,7 @@ extern INT AC6_RndShadersSize;
 VOID AC6_RndShdInit( VOID ); 
 VOID AC6_RndShdClose( VOID ); 
 VOID AC6_RndShdUpdate( VOID );
-AC6_RndShdAdd( CHAR *FileNamePrefix );
+INT AC6_RndShdAdd( CHAR *FileNamePrefix );
 
 typedef struct tagac6TEXTURE
 {
@@ -36,6 +36,7 @@ VOID AC6_RndTexInit( VOID );
 VOID AC6_RndTexClose( VOID );
 INT AC6_RndTexAddImg( CHAR *Name, INT W, INT H, INT C, VOID *Bits );
 INT AC6_RndTexAdd( CHAR *FileName );
+INT AC6_RndTexAddFmt( CHAR *Name, INT W, INT H, INT GLType );
 
 typedef struct tagac6MATERIAL
 {
@@ -52,6 +53,7 @@ typedef struct tagac6MATERIAL
 
 extern ac6MATERIAL AC6_RndMaterials[AC6_MAX_MATERIALS]; /* Array of materials */
 extern INT AC6_RndMaterialsSize;
+
 
 VOID AC6_RndMtlInit( VOID );
 VOID AC6_RndMtlClose( VOID );

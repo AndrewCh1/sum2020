@@ -134,6 +134,7 @@ static INT AC6_RndShdLoad( CHAR *ShaderFileNamePrefix )
   } shd[] =
   {
     {"VERT", GL_VERTEX_SHADER},
+    {"GEOM", GL_GEOMETRY_SHADER},
     {"FRAG", GL_FRAGMENT_SHADER},
   };
   INT NoofS = sizeof(shd) / sizeof(shd[0]), i, res, prg;
@@ -147,6 +148,10 @@ static INT AC6_RndShdLoad( CHAR *ShaderFileNamePrefix )
     sprintf(Buf, "BIN/SHADERS/%s/%s.GLSL", ShaderFileNamePrefix, shd[i].Name);
     /* Load shader text from file */
     txt = AC6_RndShdLoadTextFromFile(Buf);
+
+    if (shd[i].Type != GL_VERTEX_SHADER && shd[i].Type != GL_FRAGMENT_SHADER && txt == NULL)
+      continue;
+
     if (txt == NULL)
     {
       AC6_RndShdLog(ShaderFileNamePrefix, shd[i].Name, "Error load file");

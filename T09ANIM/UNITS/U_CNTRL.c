@@ -40,12 +40,12 @@ static VOID AC6_UnitResponse( ac6UNIT_CONTROL *Uni, ac6ANIM *Ani )
 {
   static CHAR Buf[102];
 
-   if (Ani->KeysClick['P'])
+  if (Ani->KeysClick['P'])
     Ani->IsPause = !Ani->IsPause;
 
-  if (Ani->KeysClick['W'])
+  if (Ani->Keys[VK_SHIFT] && Ani->KeysClick['W'])
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  else if (Ani->KeysClick['S'])
+  else if (Ani->Keys[VK_SHIFT] && Ani->KeysClick['S'])
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 
@@ -61,12 +61,12 @@ static VOID AC6_UnitResponse( ac6UNIT_CONTROL *Uni, ac6ANIM *Ani )
  
   if (Uni->Dist < 1.5)
     Uni->Dist = 1.5;
-
-  AC6_RndCamSet(PointTransform(VecSet(0, 0, Uni->Dist),
-                  MatrMulMatr(MatrRotateX(Uni->Elevator),
-                              MatrRotateY(Uni->Azimuth))),
-                VecSet(0, 0, 0),
-                VecSet(0, 1, 0));
+  if (Ani->IsPause)
+    AC6_RndCamSet(PointTransform(VecSet(0, 0, Uni->Dist),
+                    MatrMulMatr(MatrRotateX(Uni->Elevator),
+                                MatrRotateY(Uni->Azimuth))),
+                    VecSet(0, 0, 0),
+                    VecSet(0, 1, 0));
 } 
 
 
@@ -83,6 +83,9 @@ static VOID AC6_UnitRender( ac6UNIT_CONTROL *Uni, ac6ANIM *Ani )
   INT n[10], i;
   MATR m = MatrOrtho(0, Ani->W - 1, Ani->H - 1, 0, -1, 1);
   static CHAR Buf[10][100];
+
+  if (AC6_RndShadowPassFlag)
+    return;
   //  INT n[10], i;
   //  MATR m = MatrOrtho(0, Ani->W - k, Ani->H - k, 0, -1, 1);
   //  static CHAR Buf[10][100];

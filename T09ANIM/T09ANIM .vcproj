@@ -237,6 +237,10 @@
 						>
 					</File>
 					<File
+						RelativePath=".\ANIM\RND\RNDLIGHT.C"
+						>
+					</File>
+					<File
 						RelativePath=".\ANIM\RND\RNDPRIM.C"
 						>
 					</File>
@@ -295,6 +299,14 @@
 				</File>
 				<File
 					RelativePath=".\UNITS\U_IMAGE.c"
+					>
+				</File>
+				<File
+					RelativePath=".\UNITS\U_SHADOW.C"
+					>
+				</File>
+				<File
+					RelativePath=".\UNITS\U_SPACESHIP.c"
 					>
 				</File>
 			</Filter>

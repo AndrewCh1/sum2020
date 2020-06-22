@@ -97,7 +97,11 @@ VOID AC6_RndStart(VOID)
     AC6_RndShdUpdate();
     reload_time = t;
   }
-#endif 
+#endif
+
+  AC6_RndLightShadow();
+
+  /*Clear Background*/
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -131,6 +135,7 @@ VOID AC6_RndCamSet( VEC Loc, VEC At, VEC Up )
   AC6_RndMatrVP = MatrMulMatr(AC6_RndMatrView, AC6_RndMatrProj);
 
   AC6_RndCamLoc = Loc;
+  AC6_RndCamAt = At;
   AC6_RndCamRight = VecSet(AC6_RndMatrView.A[0][0], AC6_RndMatrView.A[1][0], AC6_RndMatrView.A[2][0]);
   AC6_RndCamUp = VecSet(AC6_RndMatrView.A[0][1], AC6_RndMatrView.A[1][1], AC6_RndMatrView.A[2][1]);
   AC6_RndCamDir = VecSet(AC6_RndMatrView.A[0][2], AC6_RndMatrView.A[1][2], AC6_RndMatrView.A[2][2]);

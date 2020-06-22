@@ -6,7 +6,6 @@ typedef struct tagac6UNIT_BALL
   AC6_UNIT_BASE_FIELDS;
   ac6PRIM Ball;
   INT TexId;
-  ac6PRIMS Model;
 } ac6UNIT_BALL;
 
 /* Unit initialization function.
@@ -21,16 +20,14 @@ static VOID AC6_UnitInit( ac6UNIT_BALL *Uni, ac6ANIM *Ani )
 {
   ac6MATERIAL mtl = AC6_RndMtlGetDef();
 
-  AC6_RndPrimCreateSphere(&Uni->Ball, VecSet(0, 0, 0), 2000, 288, 144);
-  mtl.Tex[0] = AC6_RndTexAdd("space_texture.bmp");
-  mtl.Kd = VecSet1(0.2);
-  mtl.Ks = VecSet1(0.2);
-  mtl.Ph = 120;
+  AC6_RndPrimCreateSphere(&Uni->Ball, VecSet(0, 0, 0), 2000, 20, 10);
+  mtl.Tex[0] = AC6_RndTexAdd("sky.bmp");
+  mtl.Kd = VecSet1(0.2245);
+  mtl.Ks = VecSet1(0.0645);
+  mtl.Ph = 83.2;
   mtl.ShdNo = AC6_RndShdAdd("SKY");
   Uni->Ball.MtlNo = AC6_RndMtlAdd(&mtl);
-  AC6_RndPrimsLoad(&Uni->Model, "Mi28.g3dm");
-  Uni->Model.Trans = MatrMulMatr(MatrRotateX(0), MatrTranslate(VecSet(0, 30, 0)));
-} 
+}
 /* End of 'AC6_UnitInit' function */
 
 /* Unit deinitialization function.
@@ -70,8 +67,7 @@ static VOID AC6_UnitResponse( ac6UNIT_BALL *Uni, ac6ANIM *Ani )
  */
 static VOID AC6_UnitRender( ac6UNIT_BALL *Uni, ac6ANIM *Ani )
 {
-  AC6_RndPrimsDraw(&Uni->Model, MatrIdentity());
-  AC6_RndPrimDraw(&Uni->Ball, MatrRotate(Ani->Time * 30, VecSet(1, 2, 3)));
+  AC6_RndPrimDraw(&Uni->Ball, MatrIdentity());
 }
 /* End of 'VG4_UnitRender' function */
 
